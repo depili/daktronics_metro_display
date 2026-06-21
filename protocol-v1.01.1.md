@@ -161,10 +161,49 @@ Available only when the corresponding mode flag(s) are set (§3).
 |---|---|
 | `<NN>` | line number. If first char is `'0'`, exactly one digit follows (lines 1–9 as `01`…`09`). Otherwise the decimal is consumed by `FUN_2000c780`. Line `0` → bad-param. |
 | `[+]` | optional. **Present** → continuation segment (clears the default-attr flag). **Absent** → this is the line's default attribute segment. |
-| `<MA>` | mode + attribute, 2 chars, decoded by `parse_mode`. Low byte = mode char (`S`=static, `s`=scroll, `C`=clock, `c`=…, `q`=queue/multi-segment, `I`=icon). High byte = colour/attribute byte. `I` is only treated as a mode change when the *previous* segment ended with `j`, `r`, or `t`; otherwise the bytes are taken as plain text. |
+| `<MA>` | mode + colour, 2 chars, decoded by `parse_mode` (see §6.5.1 below). Returns a packed 16-bit `(colour<<8) \| mode`. Only ~50 input pairs are recognised; everything else falls through to mode `I`. |
 | `<J>` | justify, 1 char: `N` / `L` / `R` / `C`. Anything else → bad-param `0x02`. |
 | `*<DDD>` | recall stored text buffer: 3 decimal digits (0–999). Under the alt handler with `*DAT_20014078 != 0` the form is 2 digits + 100 internally → range 100–199. |
 | `<…text…>` | inline body terminated by `>` or NUL. Allocated to a fresh slot via `FUN_20024128` (or `FUN_2002842c` for the bidi pre-processor path under the alt handler). Compiled by `FUN_2000c8c0` (with flag `1` for mode `q`). |
+
+#### 6.5.1 `<MA>` — `parse_mode` (`0x2000c25c`)
+
+`parse_mode` reads exactly two bytes, looks the 16-bit pair up in the rodata table at `0x2000c638..0x2000c71f`, and returns `(colour<<8) \| mode_byte`. The caller splits the result:
+
+```c
+uVar11 = parse_mode(pcVar18);
+mode    = uVar11 & 0xff;       // low byte
+colour  = (uVar11 >> 8) & 0xff; // high byte
+```
+
+**Primary modes — `<letter><digit>`:** the first char is the mode kind, the second is the colour index `0`–`9`.
+
+| `<letter>` (mode byte) | Pairs accepted | Notes |
+|---|---|---|
+| `S` (0x53) | `S0`…`S9` | static. `S0` returns just mode (colour 0); `S1`–`S9` return mode + colour. Slots `+0x3b0`/`+0x3c4` get `S`/`S`. |
+| `s` (0x73) | `s0`…`s9` | scroll. Slots get `S`/`s`. |
+| `C` (0x43) | `C0`…`C9`, `CA` | clock with static base. Slots get `C`/`S`. `CA` collapses to plain `C`. |
+| `c` (0x63) | `c0`…`c9` | clock with scroll base. Slots get `c`/`s`. |
+
+**Two-letter shortcuts** — both bytes are letters; these don't carry a colour digit (returned colour is `0`), and they don't write the per-mode slot pair (they fall through `LAB_200139d0` and only set the colour/`local_48` fields):
+
+| Input | Mode byte returned |
+|---|---|
+| `ru` | `R` (0x52) |
+| `dr` | `r` (0x72) |
+| `oc` | `V` (0x56) |
+| `oe` | `v` (0x76) |
+| `ol` | `U` (0x55) |
+| `or` | `u` (0x75) |
+| `ac` | `c` (0x63) — collapses to plain `c` (no colour) |
+| `ps` | `*` (0x2A) |
+| `qs` | `q` (0x71) — enables the `\|`-separated multi-segment splitter inside `<…text…>` and calls `FUN_2000c8c0` with flag `1` |
+
+**Fallback**: any 2-byte input not in the tables above returns `0x49` = `'I'` (icon).
+
+`'I'` is treated as a *real* mode change by `cmd_dl_handler_alt` only when the **previous** non-NUL byte in the parsed buffer was `j`, `r`, or `t` (the icon-disambiguation rule); otherwise the two bytes are reinterpreted as plain text and the previous segment's attributes are kept.
+
+So the practical rule for an author writing a `!dl` body is: pick one of the 41 `<letter><digit>` combinations or the 9 two-letter shortcuts; anything else is text.
 
 **Continuation segments (alt handler only).** After the first segment commits via `FUN_20024ce8`, the parsed buffer is re-walked, with `\0` bytes splitting segments. Each subsequent segment can re-prefix with any of:
 
@@ -335,6 +374,228 @@ The boot-time `ACFG` parser (`parse_config` at `0x20007c10`) populates the globa
 ## 12. Open items
 
 - Handlers `cmd_st_handler`, `cmd_qF_handler`, `cmd_Fm_handler`, `cmd_zr_handler`, `cmd_zp_handler`, `cmd_qe_rl_handler` are mapped to addresses but their internal byte formats are not yet decoded.
-- `parse_mode` returns a packed `(attr<<8)|mode` but the full mode/colour table has not been enumerated.
 - The `W`-family per-zone routing and the `FUN_200254d4`/`FUN_200274ac`/`FUN_20029828` chain need deeper analysis.
 - The `R Time/Date/Temperature Now` adjuster code paths are only partly traced — the `±<HH>` arithmetic is confirmed; the field-write side-effects (`DAT_20072244`, `DAT_20072258`, `DAT_20031864`) need follow-up.
+- Visual semantics of `parse_mode`'s 13 mode bytes (per §6.5.1) are inferred from the rodata names but not confirmed on hardware — see §13 for the test plan that would pin them down.
+
+## 13. Test plan — pinning down `cmd_dl_handler_alt`
+
+Everything in §6.5 was reconstructed from the dispatch / record-write code; the *visual semantics* of each mode and the colour digit mapping have not been verified against a running unit. The probes below are designed to be small, observable, and to isolate one variable at a time. Send each probe with a checksum if the unit demands it (assume the unit's low address is `1` → addressed as `0A`; substitute as needed).
+
+### 13.1 Preamble
+
+Every probe assumes this baseline:
+
+```
+[0A!zb]                       reboot (clean slate)
+[0A!se S]                     CurrentMode → static
+[0A!?v]                       sanity check: confirm firmware v1.01.1 reply
+[0A!?z]                       record geometry: `pixels,rows×lines,M|C`
+[0A!?q]                       record initial brightness state
+[0A!m1!ffc]                   select slot 1, clear frame
+[0A!ps01]                     show page 01 (forces an active page context, else !dl returns AN02,A4)
+```
+
+Reset between probes with `[0A!cd]` (clear current message) — avoids leftover segments from a previous test polluting the line records.
+
+### 13.2 Primary modes — `S` / `s` / `C` / `c`
+
+Goal: confirm which mode actually renders as static text, scroll, static clock, scrolling clock — and confirm the `(primary, secondary)` slot pairing maps to visible behaviour.
+
+| # | Command | What to observe | Confirms |
+|---|---|---|---|
+| 1 | `[0A!dl01S1N<HELLO>]` | text "HELLO" should appear stationary in the line's default position, colour 1 | `MODE_STATIC` writes `(S,S)` and the renderer treats the pair as plain static |
+| 2 | `[0A!dl01s1N<HELLO>]` | text should scroll horizontally; same colour | `MODE_SCROLL` writes `(S,s)` and `s` in the secondary slot is the scroll trigger |
+| 3 | `[0A!dl01C1N<>]` | live clock face should appear, static (no scroll); empty `<>` because clock fields come from RTC | `MODE_CLOCK_STATIC` writes `(C,S)` |
+| 4 | `[0A!dl01c1N<>]` | live clock that scrolls in/out (likely 12-h format if `C` was 24-h) | `MODE_CLOCK_SCROLL` writes `(c,s)` — also tests whether case difference encodes 12h vs 24h |
+| 5 | `[0A!dl01C0N<>]` then `[0A!dl01CAN<>]` | both should render identically | `CA` is the documented alias for `C0` |
+
+For #3/#4 also issue `[0A!st<HHMMSS>]` first so the clock has a known time.
+
+### 13.3 Colour digit (0–9)
+
+Goal: enumerate what each digit shows. Probe each in turn with the same text so only the digit changes:
+
+```
+[0A!dl01S0N<X>]   for X in {S0..S9}
+[0A!cd]           between each
+```
+
+Record the colour you see for each digit (`0` and `1`–`9`). Specifically watch for:
+- whether `0` is a "no colour" / inherit case (it returns just the mode byte with high byte 0)
+- which digit gives the brightest / which gives the dimmest
+- whether `5`–`9` access secondary colours only on multi-colour units (`!?z` returns `M` or `C`)
+
+### 13.4 Shortcut-word modes (effect overrides)
+
+Hypothesis (§6.5.1): the 9 two-letter shortcuts are *effect overrides* — they update colour + default-attr only, do not touch the per-line slot pair, and so reuse whatever S/s/C/c the renderer last installed.
+
+Test: install a baseline static line first, then re-send `!dl` for the same line with a shortcut mode. The text content should stay; the visual effect changes.
+
+| # | Setup | Effect probe | What to observe |
+|---|---|---|---|
+| 6 | `[0A!dl01S1N<HELLO>]` | `[0A!dl01ruN<HELLO>]` | text remains "HELLO" but with the `ru` effect (likely "run-up" / vertical roll-up entrance) |
+| 7 | (same) | `[0A!dl01drN<HELLO>]` | likely "drop" entrance |
+| 8 | (same) | `[0A!dl01olN<HELLO>]` | likely "open from left" / "lift" |
+| 9 | (same) | `[0A!dl01orN<HELLO>]` | likely "open from right" / "roll" |
+| 10 | (same) | `[0A!dl01ocN<HELLO>]` | likely "open from centre" |
+| 11 | (same) | `[0A!dl01oeN<HELLO>]` | likely "open from edges" |
+| 12 | (same) | `[0A!dl01psN<HELLO>]` | likely "pause" — text appears then holds |
+
+Name each effect from what you see. The proposed enum names (`MODE_RUN`, `MODE_DROP`, `MODE_LIFT`, `MODE_ROLL`, `MODE_OPEN_V_UPPER`, `MODE_OPEN_V_LOWER`, `MODE_PAUSE`) can be revised to match.
+
+Also send **without** a preceding static install:
+
+```
+[0A!cd]
+[0A!dl01ruN<FRESH>]
+```
+
+If §6.5 is right (these don't write the slot pair), behaviour without a baseline static may be undefined or fall back to whatever the per-line slot was at boot. If it works fine, the inference about slot-pair persistence is wrong.
+
+### 13.5 Queue mode `qs` — segment splitter & qwidth
+
+Goal: confirm `|` inside `<…>` splits the body into independently-rendered queue segments, and that segment width = `Sequence` (seconds).
+
+```
+[0A!se S]                                          // CurrentMode static
+[0A!ps01!cd]
+[0A!dl01qs1N<AAA|BBB|CCC>]                         // three queue segments
+```
+
+Watch: the line should cycle `AAA` → `BBB` → `CCC` → repeat, with each segment held for `Sequence` seconds (default 2s from `parse_config` initial value, or whatever your config set).
+
+Then probe the qwidth = SequenceMs/1000 relationship:
+
+```
+[0A!uq 5]                                          // set sequence to 5s
+[0A!dl01qs1N<AAA|BBB|CCC>]
+                                                   // confirm each segment holds 5s
+[0A!uq 1]
+[0A!dl01qs1N<AAA|BBB|CCC>]
+                                                   // confirm 1s cadence
+```
+
+Confirms `g_dwMagicDiv1000` is used to convert `g_dwCfgSequenceMs` to a per-segment seconds count written into `qwidth` / `qwidth_mirror`.
+
+Also test a non-`qs` mode with `|` in the body:
+
+```
+[0A!dl01S1N<AAA|BBB|CCC>]
+```
+
+If `|` only acts as a separator under `MODE_QUEUE`, this should display the literal text `AAA|BBB|CCC` as one static line. Confirms the `(text_byte == '|' && uVar14 == 0x71)` gate.
+
+### 13.6 Icon disambiguation
+
+Goal: confirm `'I'` (the `parse_mode` fallback) only becomes a *real* mode-change when the preceding parsed byte is `j`, `r`, or `t`.
+
+```
+[0A!dl01IjN<…>]      // I-mode with j prefix — should render as icon "j"
+[0A!dl01IrN<…>]      // I-mode with r prefix
+[0A!dl01ItN<…>]      // I-mode with t prefix
+[0A!dl01IxN<…>]      // I-mode with x prefix — should be treated as text "Ix", not a mode change
+```
+
+The first three should render the unit's built-in icons for `j`/`r`/`t` (likely journey/road/transit symbols). The fourth should fall through to text. Also exercise the disambiguation *within* a continuation segment by chaining inside `qs`:
+
+```
+[0A!dl01qs1N<TEXT|IjFOO|IxBAR>]
+```
+
+Expect: `TEXT` → icon-j-then-FOO → `IxBAR` as literal text in the third slot.
+
+### 13.7 Stored-buffer recall (`*`)
+
+Goal: confirm the slot-id form and the `g_protocol_7` alt addressing.
+
+```
+[0A!kt000<HELLO BUFFER>]            // compile to text slot 0
+[0A!kt050<SLOT FIFTY>]
+[0A!kt999<EDGE>]                    // top of range
+[0A!dl01S1N*000]                    // recall slot 0
+[0A!cd]
+[0A!dl01S1N*050]                    // recall slot 50
+[0A!cd]
+[0A!dl01S1N*999]                    // recall top slot
+```
+
+Expect each `!dl…*<DDD>` to render the corresponding buffer text. Then trigger the alt mode (if you can reach `g_protocol_7` — typically via `[0A!zm 7]` which rotates the protocol flags and reboots into mode-7) and re-test:
+
+```
+[0A!zm 7]                           // switch to g_protocol_2 + g_protocol_7
+... reboot, re-prelude, re-store buffers ...
+[0A!dl01S1N*42]                     // 2-digit form
+```
+
+Expect `*42` to render slot **142** (2-digit + 100 offset under `g_protocol_7`), not slot 42 — that's the divergent behaviour `g_pProtocol7` controls.
+
+### 13.8 The `+` prefix
+
+Goal: confirm whether `+` produces any visible difference vs no-prefix on a *first* segment.
+
+```
+[0A!cd]
+[0A!dl01S1N<HELLO>]      // no +
+[0A!cd]
+[0A!dl01+S1N<HELLO>]     // with +
+```
+
+If §6.5 is right, the only difference is the `default_attr_seg0` field (`1` vs `0`). The visual output may be identical or may differ in attribute inheritance — note which.
+
+Then test `+` on a continuation segment in queue mode:
+
+```
+[0A!dl01qs1N<RED\1|+BLUE\2|YELLOW\3>]
+```
+
+Inside the parsed buffer the continuation `+BLUE` should be tagged as a continuation segment (`default_attr` cleared). Compare the visual effect of the middle segment to the others to see what `default_attr` controls — likely whether the previous segment's attributes carry over.
+
+### 13.9 Continuation segments without `qs`
+
+Hypothesis from §6.5: only `MODE_QUEUE` enters the continuation walk. Verify:
+
+```
+[0A!dl01S1N<ABC\0DEF\0GHI>]
+```
+
+The `\0` bytes are NULs that *would* be segment splits in queue mode. In `S` mode the handler returns after committing segment 0, so DEF/GHI should be ignored / not rendered (or rendered as garbled trailing bytes). If they render as separate segments, the inference about the early return for S/s/C/c is wrong.
+
+### 13.10 Error path probes
+
+Each should produce a specific error reply:
+
+| Probe | Expected reply / behaviour |
+|---|---|
+| `[0A!dl00S1N<X>]` | bad-param (`02`) — line `0` rejected |
+| `[0A!dl01S1Z<X>]` | bad-param — justify `Z` is none of `N/L/R/C` |
+| `[0A!dl01S1N!X]` | syntax (`08`) — body delimiter is neither `*` nor `<` |
+| `[0A!dl41S1N<X>]` | likely bad-param via `0x91` — line 41 likely exceeds `g_dwCfgDlmxLinesPerIndex[mode]` (current panel-line count) |
+| `!dl` with no active page | reply `AN02,A4` — `0xa4` no active channel/page context |
+| `[0A!dl01S1N*9999]` | bad-param — `*<DDD>` only reads 3 digits, but value > 999 cannot be expressed; if it parses as `999` then probably succeeds |
+| Recall an unwritten slot: `[0A!dl01S1N*042]` after a clean reboot | empty render or fallback — confirms slot-empty handling |
+
+### 13.11 Mode → record write verification (debugger)
+
+If a debugger is attached, set a watchpoint on `g_pLineRecordTable[active_line].primary_mode_seg0` (offset `+0x3b0`) and `+0x3c4`. After each probe in §13.2 confirm the byte values match the table:
+
+| Probe | Expected `+0x3b0`, `+0x3c4` |
+|---|---|
+| `S1` | `0x53`, `0x53` (`S`, `S`) |
+| `s1` | `0x53`, `0x73` (`S`, `s`) |
+| `C1` | `0x43`, `0x53` (`C`, `S`) |
+| `c1` | `0x63`, `0x73` (`c`, `s`) |
+| any of `ru/dr/oc/oe/ol/or/ps/qs/Ix`, `I` fallback | **unchanged** from prior install |
+
+Also watch `+0x3d8` (colour): every successful probe should write `local_4c` here, regardless of mode.
+
+And for queue mode: `+0xec` and `+0x13c` should both equal `g_dwCfgSequenceMs / 1000`.
+
+### 13.12 Resulting actions
+
+After running the plan, update:
+
+- §6.5.1's short-word "Likely meaning" column with the real visual effect names.
+- The `parse_mode_t` enum members in Ghidra (e.g. `MODE_RUN` → whatever it actually does).
+- §6.5's `<MA>` description if the colour-digit semantics turn out to be unit-dependent (single vs multi-colour panels may interpret differently).
+- §12 to remove the `parse_mode` semantics open item.
