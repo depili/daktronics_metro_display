@@ -68,3 +68,6 @@ Detailed status message frame:
 - `[FFP000:000:00/064fps/LS040450/C9]`
 - `[0A!ps01!m1!dl1jpL<Helsinki Hacklab>!dl2jpL<By: Depili>!dl3jpL<26-06-21>!pl01]` 
 	- Command string sent to `0A` without a checksum
+## Configuration
+
+The units have an internal [[Config file]]. With the `RM2040` version firmware you can dump it with the `!??` command, for `RM2037` I had to use a breakpoint with JTAG to get the config file from a local buffer in stack on the configuration parsing function.
