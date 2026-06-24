@@ -6,7 +6,7 @@ The list is broken in two, the well-understood commands and commands that I know
 * `[0-100]`  - Number, base 10, 0-100, inclusive.
 
 The protocol column notes if a command is only available in protocol mode 1 or 2. Version column denotes if the command is only available on RM2037 or RM2040 firmware.
-### Well known
+### Confirmed
 
 | Proto | Version | Command                                      | Example                               | Function                                 |
 | ----- | ------- | -------------------------------------------- | ------------------------------------- | ---------------------------------------- |
@@ -46,7 +46,8 @@ The protocol column notes if a command is only available in protocol mode 1 or 2
 |       |         | `!uq[1-20]`                                  | `!uq08`                               | Set text sequence timing                 |
 |       |         | `!zm[protocol]`                              | `!zm1`                                | Set protocol variant                     |
 |       |         | `!zb`                                        | `!zb`                                 | Reboot the system                        |
-## Hazy
+## Parsed, but unconfirmed
+
 | Proto | Version | Command           | Example                   | Function                                    |
 | ----- | ------- | ----------------- | ------------------------- | ------------------------------------------- |
 |       |         | `!?a`             |                           |                                             |
