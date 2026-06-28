@@ -8,44 +8,44 @@ The list is broken in two, the well-understood commands and commands that I know
 The protocol column notes if a command is only available in protocol mode 1 or 2. Version column denotes if the command is only available on RM2037 or RM2040 firmware.
 ### Confirmed
 
-| Proto | Version | Command                                      | Example                                      | Function                                 |
-| ----- | ------- | -------------------------------------------- | -------------------------------------------- | ---------------------------------------- |
-|       | RM2040  | `!??`                                        |                                              | Full ID dump, not supported on RM2037    |
-|       |         | `!?b`                                        |                                              | Get current brightness                   |
-|       |         | `!?d`                                        |                                              | Get current RTC date                     |
-|       |         | `!?e`                                        |                                              | Get number of failed leds                |
-|       |         | `!?F[+\-]`                                   | `!?F+` `!?F-`                                | Detailed error / state query / mode set  |
-|       |         | `!?j`                                        |                                              | Get jumper state                         |
-|       |         | `!?n`                                        |                                              | Get serial number                        |
-|       |         | `!?p`                                        |                                              | Query presense                           |
-|       |         | `!?t`                                        |                                              | Get current RTC time                     |
-|       |         | `!?v`                                        |                                              | Query version                            |
-|       |         | `!?z`                                        |                                              | Get panel size                           |
-|       |         | `!dg`                                        |                                              | Draw sprite                              |
-|       |         | `!dl[line][mirror][effect][justify]<[text]>` | `!dl01jpL<Hello world!>`                     | Define a text line                       |
-|       |         | `!Fm[mapping definition]*`                   | `!Fmm8l1x0y0h16w160l2x0y40h8w48*`            | Define text line mapping                 |
-|       |         | `!kg`                                        | `!kg0,8,8<XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX>` | Define sprite                            |
-|       |         | `!kt`                                        |                                              | Define stored text                       |
-|       |         | `!m[mapping]`                                | `!m1`                                        | Select the text line mapping             |
-|       |         | `!pc[Y/N]`                                   | `!pcY`                                       | Set the page carry flag                  |
-|       |         | `!pd[nn]`                                    | `!pd01`                                      | Delete page                              |
-|       |         | `!pl[page list]`                             | `!pl01``!pl01,02,03` `!pl*`                  | Define page playlist                     |
-|       |         | `!ps[page]`                                  | !ps01                                        | Clear and load the page for redifinition |
-|       |         | `!px`                                        | `!px`                                        | Clear the playlist                       |
-|       |         | `!rf`                                        |                                              | Get current blink timings                |
-|       |         | `!rl`                                        |                                              | Get current pin lockout timer            |
-|       |         | `!rm`                                        |                                              | Get current maintenance mode timeout     |
-|       |         | `!rp`                                        |                                              | Get timeout value                        |
-|       |         | `!rq`                                        |                                              | Get current sequence timer               |
-|       |         | `!sd[date]`                                  |                                              | Set date, WMMDDYY                        |
-|       |         | `!st[time]`                                  | `!st123456`                                  | Set RTC time, HHMMSS                     |
-|       |         | `!tl`                                        | `!tl`                                        | Run led test                             |
-|       |         | `!to[1-4]`                                   | `!to1`                                       | Set text overflow mode                   |
-|       |         | `!tp[n]`                                     | `!tp1`                                       | Show test pattern, 0 disables            |
-|       |         | `!up[nn]`                                    | `!up05`                                      | Set communications timeout               |
-|       |         | `!uq[1-20]`                                  | `!uq08`                                      | Set text sequence timing                 |
-|       | RM2037  | `!zm[protocol]`                              | `!zm1`                                       | Set protocol variant                     |
-|       |         | `!zb`                                        | `!zb`                                        | Reboot the system                        |
+| Proto | Version | Command                                      | Example                                      | Function                                        |
+| ----- | ------- | -------------------------------------------- | -------------------------------------------- | ----------------------------------------------- |
+|       | RM2040  | `!??`                                        |                                              | [[#`!??` dump unit info]]                       |
+|       |         | `!?b`                                        |                                              |                                                 |
+|       |         | `!?d`                                        |                                              | [[#`!?d` get rtc date]]                         |
+|       |         | `!?e`                                        |                                              | [[#`!?e` get number of led errors]]             |
+|       |         | `!?F[+\-]`                                   | `!?F+` `!?F-`                                | [[#`!?F` detailed error & state report toggle]] |
+|       |         | `!?j`                                        |                                              | [[#`!?j` get jumper configuration]]             |
+|       |         | `!?n`                                        |                                              | [[#`!?n` get serial numer]]                     |
+|       |         | `!?p`                                        |                                              | [[#`!?t` get RTC time]]                         |
+|       |         | `!?t`                                        |                                              | [[#`!?t` get RTC time]]                         |
+|       |         | `!?v`                                        |                                              | [[#`!?v` get firmware version]]                 |
+|       |         | `!?z`                                        |                                              | [[#`!?z` get display dimension]]                |
+|       |         | `!dg`                                        |                                              | [[#`!dg` - draw graphics]]                      |
+|       |         | `!dl[line][mirror][effect][justify]<[text]>` | `!dl01jpL<Hello world!>`                     | [[#`!dl` - display line]]                       |
+|       |         | `!Fm[mapping definition]*`                   | `!Fmm8l1x0y0h16w160l2x0y40h8w48*`            | [[#`!Fm` display mapping definition]]           |
+|       |         | `!kg`                                        | `!kg0,8,8<XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX>` | [[#`!kg` define sprite]]                        |
+|       |         | `!kt`                                        |                                              | Define stored text                              |
+|       |         | `!m[mapping]`                                | `!m1`                                        | Select the text line mapping                    |
+|       |         | `!pc[Y/N]`                                   | `!pcY`                                       | Set the page carry flag                         |
+|       |         | `!pd[nn]`                                    | `!pd01`                                      | Delete page                                     |
+|       |         | `!pl[page list]`                             | `!pl01``!pl01,02,03` `!pl*`                  | Define page playlist                            |
+|       |         | `!ps[page]`                                  | !ps01                                        | Clear and load the page for redifinition        |
+|       |         | `!px`                                        | `!px`                                        | Clear the playlist                              |
+|       |         | `!rf`                                        |                                              | Get current blink timings                       |
+|       |         | `!rl`                                        |                                              | Get current pin lockout timer                   |
+|       |         | `!rm`                                        |                                              | Get current maintenance mode timeout            |
+|       |         | `!rp`                                        |                                              | Get timeout value                               |
+|       |         | `!rq`                                        |                                              | Get current sequence timer                      |
+|       |         | `!sd[date]`                                  |                                              | Set date, WMMDDYY                               |
+|       |         | `!st[time]`                                  | `!st123456`                                  | Set RTC time, HHMMSS                            |
+|       |         | `!tl`                                        | `!tl`                                        | Run led test                                    |
+|       |         | `!to[1-3]`                                   | `!to1`                                       | Set text overflow mode                          |
+|       |         | `!tp[n]`                                     | `!tp1`                                       | Show test pattern, 0 disables                   |
+|       |         | `!up[nn]`                                    | `!up05`                                      | Set communications timeout                      |
+|       |         | `!uq[1-20]`                                  | `!uq08`                                      | Set text sequence timing                        |
+|       | RM2037  | `!zm[protocol]`                              | `!zm1`                                       | Set protocol variant                            |
+|       |         | `!zb`                                        | `!zb`                                        | Reboot the system                               |
 ## Parsed, but unconfirmed
 
 | Proto | Version | Command           | Example                   | Function                                    |
@@ -140,16 +140,130 @@ The protocol column notes if a command is only available in protocol mode 1 or 2
 |       |         | `!zy`             |                           | Reboot to loader 3                          |
 |       |         | `!zz`             |                           | Reboot to loader 5                          |
 # Detailed command descriptions
-## `!df` - display frame
+## `!??` dump unit info
 
-This command is used for defining animation frames. It takes a sprite defined by `!kg` and draws it full screen. Use with `!dr` to define the animation by repeating `!df[nn]!dr[nn]...`
+RM2040 only.
+## `!?a[serial]` get address
+
+Probably for broadcast messages to find address for given serial?
+
+## `!?b` get current brightness
+
+## Examples
+
+- TX: `[0A!?b]`
+- RX: `[AY00,8F:015/CF]`
+	- Current brightness 15%
+## `!?d` get rtc date
+
+### Examples
+- TX: `[0A!?d]`
+- RX: `[AY00,8F:4062526/A2]`
+	- Thursday, Day: 25 Month: 06, Year: 26
+
+## `!?e` get number of led errors
+
+## `!?f` get max brightness
+
+The `!lt` command or a boot time configuration with the dip switches runs a led test, measuring the current draw of each led. This command reports the number of leds that failed the test.
+## `!?F` detailed error & state report toggle
+
+This command can be used to turn on or off detailed state replies. `!?F+`  turns them on, `!?F-` off. Plain `!?F` gives one time message.
+### Examples
+- TX: `[0A!?F+]` 
+- RX: `[AY00,8F/FF][FFP000:000:00/064fps/LS040431/C8]`
+
+
+## `!?g`
+
+
+## `!?i` get some string
+
+
+## `!?j` get jumper configuration
+
+Returns the jumper state
+
+## `!?l` get light sensor PCB type
+
+RM2040 only. Returns either `PCB294`  or `PCB175` 
+
+## `!?n` get serial numer
+
+Returns the units serial number
+
+## `!?m` get some error flag?
+
+The data is reset after being read.
+
+
+## `!?o`
+
+
+## `!?p` query presence
+
+Always returns `1` . Used to verify unit is present at address.
+
+## `!?r` get some FPGA register value
+
+RM2040 only.
+
+## `!?t` get RTC time
+
+Returns the current RTC time of the unit, HHMMSS format.
+
+## `!?x` get the DDX fixed line
+
+RM2040 only.
+
+### Examples
+- TX: `[0A!?t]`
+- RX: `[AY00,8F:154218/6E]`
+	- clock: 15:42:18
+## `!?v` get firmware version
+
+### Examples
+
+- TX: `[0A!?v]`
+- RX: `[AY00,8F:2037,1010/F3]`
+	- RM2037 version 1.01.0
+## `!?z` get display dimension
+
+Reply fields:
+- RM2037:
+	1. width
+	2.  height
+	3. color type; `M` single color, `C` dual color
+- RM2040
+	1.  width
+	2.  height
+	3.  colour type; `M` single colour, ´C` dual colour
+	4. `SS` single sided, `DD` dual sided
+### Examples
+
+- TX: `[0A!?z]`
+- RX: `[AY00,8F:0160,0048,M/71]`'
+	- 160 pixels wide, 48 pixels high, single colour
+
+## `!df[nnn]` - display frame
+
+This command is used for defining animation frames. It takes a sprite defined by `!kg` and draws it full screen. Use with `!dr` to define the animation by repeating `!df[nnn]!dr[nnn]...`
+
+### Examples
+
+```
+[0A!kg001,008,008<XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX>]
+[0A!kg002,008,008<CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC>]
+[0A!ps01!m1!dl01spL<Page 1>!dl02olL<line2>!pcY!dp1]
+[0A!ps02!m1!dl01rdL<Page 2>!df001!dr001!df002!dr001!lp04!dp1!pl01,02]
+```
 ### Arguments
-`[sprite]` which is the base 10 index for the sprite created with `!kg`
+`!df[sprite]` which is the base 10 index for the sprite created with `!kg`
 ## `!dg` - draw graphics
 
 This command draws sprites defined via `!kg` to the page.
 ### Arguments
-`[sprite],[x],[y],[w],[h],0,0` where:
+`!dg[sprite],[x],[y],[w],[h],0,0` where:
 - `[sprite]` is the sprite index as defined in `!kg` store
 - `[x]` is the x coordinate, base 10, left edge is `x=0`
 - `[y]` is the y coordinate, base 10, top edge is `y=0`
@@ -160,7 +274,7 @@ This command draws sprites defined via `!kg` to the page.
 
 This command defines lines on a page. For RM2037 protocol=1 and RM2040 in general the definition should be in the same protocol frame with a page and line mapping selects, ie `!ps01!m1!dl01...` command string.
 ### Arguments
-`[line][mirror][effect][justify][text]` where:
+`!dl[line][mirror][effect][justify][text]` where:
 * `[line]` Line number, base10
 * `[mirror]` Optional `+` character, causes the line to be mirrored
 * `[effect]` Two character effect code:
@@ -239,17 +353,27 @@ This command defines lines on a page. For RM2037 protocol=1 and RM2040 in genera
 * `!dl02sqL<Hello|World|Sequence>`
 * `!dl03s0L<Hello scroller!>`
 * `!dl04c0L<Static|scroller>`
+
+## `!dp[nn]` display pause
+
+Used to define pauses between page swaps or line draws. Parameter is the pause in seconds in base 10.
+
 ## `!dr` animation delay
 
-This command is used with `!df` to define animations.
+This command is used with `!df` and `!dg` to define animations.
 ### Arguments
 
 `[delay]` where delay is the animation delay in graphics ticks, base 10.
+
+## `!dw`
+
+Somehow related to page advance, currently unknown...
+
 ## `!Fm` display mapping definition
 
 This command allows definition of the line mappings recalled by `!m[0-F]` commands. Mappings defined by the config file cannot be redefined.
 ### Arguments
-`[m]{l[ll]x[xx]y[yy]h[hh]w[ww]}...*`' where
+`!Fmm[m]{l[ll]x[xx]y[yy]h[hh]w[ww]}...*`' where
 - `[m]` - Mapping designator, `[0-F]`
 - `{l[ll]x[xx]y[yy]h[hh]w[ww]}...` one or more line definitions, where:
 	- `[ll]` - Line number
@@ -265,11 +389,25 @@ This command allows definition of the line mappings recalled by `!m[0-F]` comman
 	* Lines
 		1. x: 0, y: 0, h: 16, w: 160
 		2. x: 0, y: 40, h: 8, w: 48
+
+## `!Fs[n]` set frame rate
+
+Allows changing the display refresh rate, parameter is the desired rate in base 10 Hz. Limits: `60-600` 
+
+## !eb i2c flash edit byte?
+
+
+## `!ew` i2c flash edit string?
+
+
+## `!ew` i2c flash edit word?
+
+
 ## `!kg` define sprite
 
-This command is used to define a reusable graphics sprite. The maximum size of a sprite is 32769 pixels in total.
+This command is used to define a reusable graphics sprite. The maximum size of a sprite is 32768 pixels in total.
 ### Arguments
-`[sprite],[w],[h]<[pixeldata]>` where:
+`!kg[sprite],[w],[h]<[pixeldata]>` where:
 * `[sprite]` is the sprite index, base 10, 0-24
 * `[w]` is the width in pixels
 * `[h]` is the height in pixels
@@ -320,19 +458,35 @@ This gives us following ascii characters for the encoding:
 | `d`   | 0x64 | Transparent | Transparent \| |
 ### Examples
 * `!kg000,008,008<XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX>`
-	* `8x8` sprite with id `0`, alternating amber and off stripes
+	* `8x8` sprite with id `0`, alternating amber and off vertical columns
+* `!kg000,002,001<[>`
+
+## `!kt` store text
 
 ## `!m0` to `!mF` load line mapping
 
 These commands are used after `!ps` to select the line mapping to use for the page definition. Mappings are both loaded from the config with the `DLMx=`  keys and defined run-time with the `!Fm` command. These take no parameters.
 
-## `!pd` page delete
+## `!pc` page carry
+
+This controls the "carry" flag in the page. If the flag is set line content is copied from the previous page, assuming both use the same line mapping, as a base. If not set the page clears all lines that do not have any content set. Use `!pcY` to set and `!pcN` to clear. Default state depends on the config file.
+
+## `!pd[nn]` page delete
 
 Deletes a page and removes it from playlists, freeing all assigned graphics objects. Argument is the page number, in base 10
 
 ### Examples
 
 - `!pd01`
+## `!pl` playlist
+
+Select the pages to use for a playlist. Page durations are set with the `!dp`, `!lp` and `!dw` commands when the page is defined. Argument is either a comma separated list of page identifiers or `*` for all defined pages. 
+
+If the pages do not have durations defined with `!dp` or other mechanisms they will block the advancement.
+
+### Examples
+
+- `!pl01,02,04`
 
 ## `!ps` page select
 
@@ -342,13 +496,126 @@ Selects the page to modify. Argument is the page numbe in base 10. Should be fol
 
 - `!ps01!m1!dl01ruC<Hello there>`
 
+## `!px` clear playlist
+
+Deletes the playlist, doesn't delete the pages.
+
+## `!rb` get and `!sb[nnn]` set brightness
+
+Gets and sets the panel brightness, in percent base 10.
+
+## `!rf` get blink duty cycles
+
+Get the current blinking text duty cycles
+
+## `!rl` get and `!ul` set current lockout timer for pin lock
+
+Get and set the current timer in minutes that is used between unsuccessful pin code entry attempts. Value `0-60`
+
+## `!rm` get and `!um[nn]` set maintenance mode timeout
+
+Get and set the time in minutes for the maintenance mode timeout, value: `1-5`.
+### Examples
+- `!rm`
+- `!um4`
+
+## `!rp` get and `!up[nn]` set the protocol timeout
+
+Read and set the timeout, in minutes, after which the display enters a timed out state if no new messages have been received. By default the display will go blank on timeout.
+
+### Examples
+- `!rp`
+- `!up00` - disable the timeout
+- `!up05` - set 5 minute timeout
+
+## `!rq` get and `!uq` set the sequence timer
+
+Read and set the timer, in seconds, used for the text display mode `sq`. See  [[Commands for DDX protocol#`!dl` - display line]]
+
+### Examples
+- `!uq5`
+
+## `!rs`
+
+RM2037: returns 4
+
+## `!rt` read temperature
+
+
+## `!sd` set date
+
+Sets the current RTC date. Format is `WMMDDYY` where `W` is the day-of-week, ´DD´ day-of-month, `MM` month and `YY`  year.
+
+## `!se` set default segment effect
+
+Sets the default segment effect. Valid values: `S`, `s`, `C`, `c`, `I`
+
+## `!sf` set succession flag
+
+`!sfY` sets, rest reset the flag
+
+## `!sg` set brighness cap
+
+
+
+## `!tl` test leds
+
+Run the led test sequence and update the failed led counter.
+
+## `!to` set text overflow behaviour
+
+Used to control what happens when text doesn't fit completely on the line, parameter: `1-3`
+1. scroll
+2. truncate character
+3. truncate word
+
+## `!tp` test pattern
+
+Show various test patterns. Parameter `0-6`, `0` disables, others are different patterns.
+
+## `!ua[nn]` update max scrollers value
+
+
+## `!ub`
+
+
+## `!uf[nnn],[nnn]` set blink timings
+
+
+## `!uk[nn]` update some fpga flags
+
+## `!ul` update jumper values?
+
+
+## `!ul[nn]` set pin lockout time
+
+
+## `!xM` set multi-languages stuff
+
+
+## `!zm` set communication protocol
+
+`RM2037` only. Set the communication variant. Only `!zm1` is really understood.
+
+
+## `!zb` reboot the system
+
+Reboots back to the application.
+
 # Communication examples
 
 In the protocol 1 (assumed DDX) one needs to include `!ps`, `!m` and `!dl` commands in single protocol frame.
 
 ```
-[0A!ps01!m1!dl1jpL<Helsinki Hacklab metro station announcement system scroller thingy>!dl2jpL<By: Depili>!dl3jpL<26-06-21>!pl01]
+[0A!ps01!m1!dl01jpL<Helsinki Hacklab metro station announcement system scroller thingy>!dl02jpL<By: Depili>!dl03jpL<26-06-21>!pl01]
 ```
+
+A simple playlist cycling between pages with 1 second intervals:
+```
+[0A!ps01!m1!dl01jpL<Page 1>!dp1]
+[0A!ps02!m1!dl01jpL<Page 2>!dp1!pl01,02]
+```
+
 Protocol 2 (assumed LDDX) might work with this:
 ```
 [0A!ls01!m1!dl1jpL<Helsinki Hacklab metro station announcement system scroller thingy???>!dl2jpL<By: Depili>!dl3jpL<26-06-21>!pl01]
