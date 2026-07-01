@@ -4,6 +4,8 @@
 
 I received some old led displays from the Finnish Länsimetro. They came with no documentation and no communications software. So the challenge was to figure out how they work. But having already done a much older display from Kamppi metro station how hard could it be?
 
+For the impatient: See [[Quickstart]] and the `script/ddx_example.py`
+
 These are monochrome amber displays. The controller is marked as "PCB236/PCB237" and they have been manufactured by Data display in Ireland and delivered by Scannotec. They have been made around the year 2016.
 
 Data displays company has since been acquired by Daktronics.
