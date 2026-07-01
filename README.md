@@ -66,6 +66,17 @@ Detailed status message frame:
 	3. Current brightness, 2 digits, base 10
 14. Checksum: `/` followed by 2 hex digits with modulo 256 sum of all bytes from steps 1. - 13.
 15. End of frame marker: `]` 
+
+### Address matching
+
+Each display has a address, `A-Z`  and a group, `0-8`. 
+
+When sending messages to group `0` the message is a unicast message to  a single display with the address given, ie `0A` addresses the display with address `A`  no matter its group.
+
+When sending messages to group other than `0` the message addresses all displays in that group. A side effect of this multicast message is that none of the displays will send replies.
+
+A special address `0@` is broadcast to all displays, but none of them will send replies.
+
 ### Error codes
 
 The hex-encoded byte in acks and nacks is a bitfield:
