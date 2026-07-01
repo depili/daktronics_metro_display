@@ -1,0 +1,49 @@
+DriveType=M        M - Multiplexed, D - Direct Drive, T - DD Ticker. Default:M. 
+ChannelLengths=160,160,160,160,160,48,0,0	           4 lines mono colour. 
+LinesPerChannel=1,1,1,1,1,1,0,0                single sided 1 line per channel. 
+missingLEDs=0,0,0,0,0,0,0,0                deliberately missing LEDs on boards. 
+doublesided=N              the higher channels will mirror the lower  channels. 
+BrightControl=O     O - OE-line, D - D-line.                         Default:O. 
+Pixels=160          Length of longest channel (display width).     Default:128. 
+Channels=6          Number of attached data channels.                Default:8. 
+Colours=1           Number of colours.                               Default:2. 
+RowsPerLine=8       Number of pixel rows for each channel (7,8 or 9).Default:8. 
+Speed=300           Frames per second (50-600).                     Default:60.
+FXslowdown=0        Slow down effects at high frame speeds (0-7).    Default:0. 
+LightSensor=Y       Use auto light sensor feature (Y/N).             Default:Y.
+PSU=O               PSU monitoring    (O - via opto inputs,                     
+                                      P - input pin,                            
+                                      N - no monitoring).            Default:N. 
+Temp=N                Temperature monitoring (Y/N).                  Deafult:Y. 
+LEDmon=Y                                              LED monitoring Default:Y. 
+PROTOCOL=01                                    Allowed Protocols: 01:DDX modal.
+RGSwap=N                                                                        
+RBSwap=N                                                                        
+Master=Yes                                                                      
+Timeout=5                                           Time in minutes. Default:4. 
+StartTimedOut=Y                                 Initially timed out? Default N. 
+scrollIfTooWide=Y                            scroll text if too wide for field. 
+Sequence=3         seconds for each text sequence.                   Default:2. 
+Flash=700,300      On time (ms) and off time (ms).             Default:700,300. 
+MaintTime=0        Maintenance time idele timeout in minutes.        Default:1. 
+PinLock=3          PIN error lockout in minutes.                     Default:3. 
+MaxADC=20          Limit light sensor reading.              Default: 48 (0x30). 
+MinBr=15           Minimum allowed brightness percentage.            Default:1. 
+MaxBr=95           Maximum allowed brightness percentaage.          Default:98. 
+MainChannel=2                                                   485 main comms. 
+CurrentMode=1                                                                   
+RepeatDLs=Y                                                         DEFAULT: Y. 
+CarryPageContent=N                                                  DEFAULT: N.
+Succession=Y                                                        DEFAULT: N.
+translateArabic=N                                                    NO arabic. 
+autoDetectArabic=N                                                   No arabic. 
+replaceHoursLeadingZero=Y    
+DLMx=m1                                                                                                                                                        
+l1  x0   y0  h8 w160                                                                                                                                               
+l2  x0   y8  h8 w160                                                                                                                                             
+l3  x0   y16 h8 w160                                                                                                                                              
+l4  x0 	 y24 h8 w160                                                               
+l5  x0   y32 h8 w160
+l6  x112 y40 h8 w48*
+160x40 48x8 mono singlesided                                                         
+.  
