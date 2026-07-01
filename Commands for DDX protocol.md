@@ -389,6 +389,15 @@ This command allows definition of the line mappings recalled by `!m[0-F]` comman
 	* Lines
 		1. x: 0, y: 0, h: 16, w: 160
 		2. x: 0, y: 40, h: 8, w: 48
+ - `[0A!Fmm5l1x0y0h8w160l2x0y8h8w160l3x0y16h8w160 l4x0y24h8w160l5x0y32h8w160l6x112y40h8w48*]`
+	 - Mapping: 5
+	 - Lines:
+		 1. x: 0, y: 0, h: 8, w: 160
+		 2. x: 0, y: 8, h: 8, w: 160
+		 3. x: 0, y: 16, h: 8, w: 160
+		 4. x: 0, y: 24, h: 8, w: 160
+		 5. x: 0, y: 32, h: 8, w: 160
+		 6. x: 112, y: 40, h: 8, w: 48
 
 ## `!Fs[n]` set frame rate
 
