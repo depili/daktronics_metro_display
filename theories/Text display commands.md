@@ -112,13 +112,13 @@ When multi-segment mode is active (`g_multi_segment_ptr`), a nested token loop p
 
 ## 4. Line attribute model
 
-| Attribute | Source | Values |
-|---|---|---|
-| **Mode** | `<mode>` byte | `I` static (default), `s`/`S` scroll, `q` raw/quick (0x71), `C`/`c` … |
-| **Colour** | `<colour>` byte | colour / attribute index |
-| **Justify** | `jp<justify>` | `N` / `C` / `R` / `L` |
-| **Scroll speed** | derived | `g_line_speed* >> 0x26` (reciprocal scale) |
-| **Visibility/sticky** | `+` prefix → `local_74` | sets line flag `+0x14` bit1 |
+| Attribute             | Source                  | Values                                                                |
+| --------------------- | ----------------------- | --------------------------------------------------------------------- |
+| **Mode**              | `<mode>` byte           | `I` static (default), `s`/`S` scroll, `q` raw/quick (0x71), `C`/`c` … |
+| **Colour**            | `<colour>` byte         | colour / attribute index                                              |
+| **Justify**           | `jp<justify>`           | `N` / `C` / `R` / `L`                                                 |
+| **Scroll speed**      | derived                 | `g_line_speed* >> 0x26` (reciprocal scale)                            |
+| **Visibility/sticky** | `+` prefix → `local_74` | Mirror the text; sets line flag `+0x14` bit1                          |
 
 A single `!dl` line may contain **multiple attribute runs** — see §5. Each run becomes its own segment object with its own mode/colour/justify.
 

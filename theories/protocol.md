@@ -127,36 +127,36 @@ Format notation: `<n>` decimal, `<HH>` hex, `Y|N` yes/no letter, `<…>` bracket
 
 Set commands persist (many flag the config dirty). Each typically has a `!r_` read-back.
 
-| Set         | Format                | Stored                            | Read back |
-| ----------- | --------------------- | --------------------------------- | --------- |
-| `!sa`       | `!sa<serial><address>`| group, address                    | `!?t`     |
-| `!st`       | set time *(inferred)* | RTC                               | `!?t`     |
-| `!sd`       | `!sd<W><MM><DD><YY>`  | RTC date (weekday 1-7, validated) | `!?d`     |
-| `!sf`       | `!sf<Y\|N>`           | master mode                       | —         |
-| `!se`       | `!se<mode>`           | current mode (`S/s/C/c`→`I`)      | —         |
-| `!sg`       | `!sg<n>`              | brightness cap (clamped)          | `!?f`     |
-| `!sb`       | `!sb<n≤100>`          | `DAT_20174580`                    | `!rb`     |
-| `!si`       | `!si<nnnn>`           | `DAT_20023920`                    | `!?i`     |
-| `!ux`       | `!ux<n≤100>`          | max brightness                    | —         |
-| `!uy`       | `!uy<n>`              | min brightness                    | —         |
-| `!ui`/`!uw` | `<n≤100>`             | brightness clamps                 | —         |
-| `!Fs`       | `!Fs<50–160>`         | scan/refresh rate                 | —         |
-| `!Fx`       | `!Fx<0–9>`            | flash                             | —         |
-| `!LS`       | `!LS<n≤5000>`         | light-sensor level                | —         |
-| `!uq`       | `!uq<1–20>`           | message timeout (s)               | `!rq`     |
-| `!uf`       | `!uf<aaa,bbb>`        | scroll speeds A,B                 | `!rf`     |
-| `!um`       | `!um<n<16>`           | maintenance time                  | `!rm`     |
-| `!ul`       | `!ul<n<61>`           | PIN lock                          | `!rl`     |
-| `!ua`       | `!ua<n>`              | max scrolls                       | `!?s`     |
-| `!ub`       | `!ub<0/1/3/5/7>`      | sequence flags                    | —         |
-| `!uh`       | `!uh<N\|C><n>`        | LED error min/max                 | `!rh`     |
-| `!ue`       | `!ue<0\|1>`           | `DAT_2002392c`                    | `!re`     |
-| `!ut`       | `!ut<…>`              | mode-change-clears (`≠N`)         | —         |
-| `!to`       | `!to<1–3>`            | message mode (`!to4` = query)     | —         |
-| `!tp`       | `!tp<0–7>`            | test pattern select               | —         |
-| `!ud`       | `!ud<text>*`          | timeout message                   | `!rd`     |
-| `!uo`       | `!uo`                 | set dlmx from sensor              | `!?u`     |
-| `!ad`       | `!ad<Y\|N>`           | auto-detect Arabic                | —         |
+| Set         | Format                 | Stored                            | Read back |
+| ----------- | ---------------------- | --------------------------------- | --------- |
+| `!sa`       | `!sa<serial><address>` | group, address                    | `!?t`     |
+| `!st`       | set time *(inferred)*  | RTC                               | `!?t`     |
+| `!sd`       | `!sd<W><MM><DD><YY>`   | RTC date (weekday 1-7, validated) | `!?d`     |
+| `!sf`       | `!sf<Y\|N>`            | master mode                       | —         |
+| `!se`       | `!se<mode>`            | current mode (`S/s/C/c`→`I`)      | —         |
+| `!sg`       | `!sg<n>`               | brightness cap (clamped)          | `!?f`     |
+| `!sb`       | `!sb<n≤100>`           | `DAT_20174580`                    | `!rb`     |
+| `!si`       | `!si<nnnn>`            | `DAT_20023920`                    | `!?i`     |
+| `!ux`       | `!ux<n≤100>`           | max brightness                    | —         |
+| `!uy`       | `!uy<n>`               | min brightness                    | —         |
+| `!ui`/`!uw` | `<n≤100>`              | brightness clamps                 | —         |
+| `!Fs`       | `!Fs<50–160>`          | scan/refresh rate                 | —         |
+| `!Fx`       | `!Fx<0–9>`             | flash                             | —         |
+| `!LS`       | `!LS<n≤5000>`          | light-sensor level                | —         |
+| `!uq`       | `!uq<1–20>`            | message timeout (s)               | `!rq`     |
+| `!uf`       | `!uf<aaa,bbb>`         | scroll speeds A,B                 | `!rf`     |
+| `!um`       | `!um<n<16>`            | maintenance time                  | `!rm`     |
+| `!ul`       | `!ul<n<61>`            | PIN lock                          | `!rl`     |
+| `!ua`       | `!ua<n>`               | max scrolls                       | `!?s`     |
+| `!ub`       | `!ub<0/1/3/5/7>`       | sequence flags                    | —         |
+| `!uh`       | `!uh<N\|C><n>`         | LED error min/max                 | `!rh`     |
+| `!ue`       | `!ue<0\|1>`            | `DAT_2002392c`                    | `!re`     |
+| `!ut`       | `!ut<…>`               | mode-change-clears (`≠N`)         | —         |
+| `!to`       | `!to<1–3>`             | message mode (`!to4` = query)     | —         |
+| `!tp`       | `!tp<0–7>`             | test pattern select               | —         |
+| `!ud`       | `!ud<text>*`           | timeout message                   | `!rd`     |
+| `!uo`       | `!uo`                  | set dlmx from sensor              | `!?u`     |
+| `!ad`       | `!ad<Y\|N>`            | auto-detect Arabic                | —         |
 
 ### 4.4 Queries (return data)
 

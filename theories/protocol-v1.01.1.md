@@ -34,15 +34,15 @@ Each command is `!` plus a 2-character mnemonic. The dispatcher packs the mnemon
 
 The config parser sets one of seven `g_protocol_N` flags depending on the configured protocol/feature pack. The command dispatcher consults these directly to decide which mnemonics are even visible:
 
-| Flag | Address | Role |
-|---|---|---|
-| `g_protocol_1` | `0x2008563c` | enables `p…` / `m…` / `c…` / `d…` / `!kt` / `!kg` content commands |
+| Flag           | Address      | Role                                                                                                               |
+| -------------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `g_protocol_1` | `0x2008563c` | enables `p…` / `m…` / `c…` / `d…` / `!kt` / `!kg` content commands                                                 |
 | `g_protocol_2` | `0x20085644` | enables `l…` (`ls`/`lr`/`lc`/`lp`/`lh`/`lt`); selects the `cmd_dl_handler_alt` path for `!dl`; enables `!cd`/`!cl` |
-| `g_protocol_3` | `0x20085648` | enables the raw `R` / `W` / `Z*` / `d` non-`!` escapes at the top of the parse loop |
-| `g_protocol_4` | `0x20085640` | also enables `p…` content commands; gates `!pb` |
-| `g_protocol_5` | `0x20085638` | enables the `F…` / `P…` / `T…` / `D…` / `fc` / `fz` / `fa` family entries in the dispatch tree |
-| `g_protocol_6` | `0x2008564c` | settable by `!zm 6`; no command currently gates on it in v1.01.1 |
-| `g_protocol_7` | `0x20085650` | enables `!rc`/`!ra`/`!ld`/`!uc`; remaps `!rl` and `!?v` to their alt variants |
+| `g_protocol_3` | `0x20085648` | enables the raw `R` / `W` / `Z*` / `d` non-`!` escapes at the top of the parse loop                                |
+| `g_protocol_4` | `0x20085640` | also enables `p…` content commands; gates `!pb`                                                                    |
+| `g_protocol_5` | `0x20085638` | enables the `F…` / `P…` / `T…` / `D…` / `fc` / `fz` / `fa` family entries in the dispatch tree                     |
+| `g_protocol_6` | `0x2008564c` | settable by `!zm 6`; no command currently gates on it in v1.01.1                                                   |
+| `g_protocol_7` | `0x20085650` | enables `!rc`/`!ra`/`!ld`/`!uc`; remaps `!rl` and `!?v` to their alt variants                                      |
 
 The flags are mutually exclusive: `!zm` clears all of them before setting the requested one (with `!zm 7` setting both `g_protocol_2` and `g_protocol_7`). Commands gated on `g_protocol_5` are documented in §6, gated on `g_protocol_7` in §7, etc. A mnemonic only reaches its handler when the dispatch tree currently includes it AND its scope mask passes.
 
@@ -50,61 +50,61 @@ The flags are mutually exclusive: `!zm` clears all of them before setting the re
 
 Most setters persist; many flag the live config dirty (`DAT_200722ac |= 1`). The `!r*` reads listed in §5 mirror these.
 
-| Set | Format | Stored / effect |
-|---|---|---|
-| `!sa` | `!sa<serial><A><N>` | If `<serial>` matches the 12-byte UID at `DAT_20031898`, set HIGH group from `<A>` (`'1'`–`'8'`) and LOW unit from `<N>` (`'A'`–`'P'`), and acknowledge. Bad `<A>` or `<N>` → bad-param. |
-| `!st` | `!st<HH><MM><SS>` *(inferred handler `cmd_st_handler`)* | RTC time |
-| `!sd` | `!sd<W><MM><DD><YY>` | RTC date (weekday 1–7, validated; month 1–12) via `cmd_sd_set_date` |
-| `!sb` | `!sb<n≤100>` | `DAT_200722a0` (brightness backstop) |
-| `!se` | `!se<mode>` | parsed by `parse_mode` → `g_bCfgDefSeqEffect` (current mode) |
-| `!sf` | `!sf<Y\|N>` | master-mode / `Succession` flag `g_dwCfgSuccession` |
-| `!ad` | `!ad<Y\|N>` | Arabic auto-detect flag `g_dwCfgArabicAutoDetect` |
-| `!cc` | `!cc<Y\|N>` | `CarryPageContent` flag `g_dwCfgCarryPageContent` |
-| `!sp` | `!sp…` | spec/refresh handler via `FUN_2000c780`; recomputes a refresh table — internals not yet decoded |
-| `!si` *(scope 1)* | `!si<nnnn>` | `DAT_200318ec` / `DAT_200c67bc` |
-| `!to` | `!to<1\|2\|3\|4>` | message mode selector; `1`/`2`/`3` set one of `g_dwCfgScrollIfTooWide` / `g_dwCfgTruncateOnChar` / `g_dwCfgTruncateOnWord`; `4` is the *query* form that appends the current mode (`ts c`/`tc`/`tw`) to the reply buffer |
-| `!up` | `!up<nn>` | `g_dwCfgTimeout` (`Timeout=`), then `FUN_2000441c` (apply) |
-| `!uq` | `!uq<n=1–20>` | `g_dwCfgSequenceMs = n*1000` ms (`Sequence=`); updates every active queue-text segment's countdown field |
-| `!uf` | `!uf<aaa,bbb>` | scroll speeds A,B → `g_dwCfgFlashSpeedA` / `g_dwCfgFlashSpeedB` (`Flash=`). 3 digits each by default; 4 digits each when `g_protocol_7` is on. Both clamp to ≥ `10` and treat `999` as `1000`. |
-| `!us` | `!us<0–9>` | scan-speed/refresh index → `DAT_20031904` + `g_bright_clock_ctrl` lookup + `ISR_drive_setup` + `FUN_20000680` |
-| `!um` | `!um<n<16>` | `g_dwCfgMaintTime` (`MaintTime=`) |
-| `!ul` | `!ul<n<61>` | `g_dwCfgPinLock` (`PinLock=`) |
-| `!ue` | `!ue<0\|1>` | `DAT_200318f8` |
-| `!Fs` | `!Fs<50–600>` *(gated by `g_protocol_5`)* | recomputes `g_bright_clock_ctrl = 0x8ca00 / (g_dwCfgRowsPerLine * n)` then `ISR_drive_setup`. <50 → err `0xeb`, >600 → err `0xec`, bad parse → err `0xea` |
-| `!Fx` | `!Fx<0–9>` *(gated by `g_protocol_5`)* | 1- or 2-digit flash value. >9 → err `0xee`, bad parse → err `0xed` |
-| `!LS` | `!LS<n>` *(gated by `g_protocol_5`)* | `DAT_20031890` (light-sensor level), valid `2…5000` |
-| `!Fm` | — *(gated by `g_protocol_5`)* | `cmd_Fm_handler` — handler implemented but format not yet decoded |
+| Set               | Format                                                  | Stored / effect                                                                                                                                                                                                          |
+| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `!sa`             | `!sa<serial><A><N>`                                     | If `<serial>` matches the 12-byte UID at `DAT_20031898`, set HIGH group from `<A>` (`'1'`–`'8'`) and LOW unit from `<N>` (`'A'`–`'P'`), and acknowledge. Bad `<A>` or `<N>` → bad-param.                                 |
+| `!st`             | `!st<HH><MM><SS>` *(inferred handler `cmd_st_handler`)* | RTC time                                                                                                                                                                                                                 |
+| `!sd`             | `!sd<W><MM><DD><YY>`                                    | RTC date (weekday 1–7, validated; month 1–12) via `cmd_sd_set_date`                                                                                                                                                      |
+| `!sb`             | `!sb<n≤100>`                                            | `DAT_200722a0` (brightness backstop)                                                                                                                                                                                     |
+| `!se`             | `!se<mode>`                                             | parsed by `parse_mode` → `g_bCfgDefSeqEffect` (current mode)                                                                                                                                                             |
+| `!sf`             | `!sf<Y\|N>`                                             | master-mode / `Succession` flag `g_dwCfgSuccession`                                                                                                                                                                      |
+| `!ad`             | `!ad<Y\|N>`                                             | Arabic auto-detect flag `g_dwCfgArabicAutoDetect`                                                                                                                                                                        |
+| `!cc`             | `!cc<Y\|N>`                                             | `CarryPageContent` flag `g_dwCfgCarryPageContent`                                                                                                                                                                        |
+| `!sp`             | `!sp…`                                                  | spec/refresh handler via `FUN_2000c780`; recomputes a refresh table — internals not yet decoded                                                                                                                          |
+| `!si` *(scope 1)* | `!si<nnnn>`                                             | `DAT_200318ec` / `DAT_200c67bc`                                                                                                                                                                                          |
+| `!to`             | `!to<1\|2\|3\|4>`                                       | message mode selector; `1`/`2`/`3` set one of `g_dwCfgScrollIfTooWide` / `g_dwCfgTruncateOnChar` / `g_dwCfgTruncateOnWord`; `4` is the *query* form that appends the current mode (`ts c`/`tc`/`tw`) to the reply buffer |
+| `!up`             | `!up<nn>`                                               | `g_dwCfgTimeout` (`Timeout=`), then `FUN_2000441c` (apply)                                                                                                                                                               |
+| `!uq`             | `!uq<n=1–20>`                                           | `g_dwCfgSequenceMs = n*1000` ms (`Sequence=`); updates every active queue-text segment's countdown field                                                                                                                 |
+| `!uf`             | `!uf<aaa,bbb>`                                          | scroll speeds A,B → `g_dwCfgFlashSpeedA` / `g_dwCfgFlashSpeedB` (`Flash=`). 3 digits each by default; 4 digits each when `g_protocol_7` is on. Both clamp to ≥ `10` and treat `999` as `1000`.                           |
+| `!us`             | `!us<0–9>`                                              | scan-speed/refresh index → `DAT_20031904` + `g_bright_clock_ctrl` lookup + `ISR_drive_setup` + `FUN_20000680`                                                                                                            |
+| `!um`             | `!um<n<16>`                                             | `g_dwCfgMaintTime` (`MaintTime=`)                                                                                                                                                                                        |
+| `!ul`             | `!ul<n<61>`                                             | `g_dwCfgPinLock` (`PinLock=`)                                                                                                                                                                                            |
+| `!ue`             | `!ue<0\|1>`                                             | `DAT_200318f8`                                                                                                                                                                                                           |
+| `!Fs`             | `!Fs<50–600>` *(gated by `g_protocol_5`)*               | recomputes `g_bright_clock_ctrl = 0x8ca00 / (g_dwCfgRowsPerLine * n)` then `ISR_drive_setup`. <50 → err `0xeb`, >600 → err `0xec`, bad parse → err `0xea`                                                                |
+| `!Fx`             | `!Fx<0–9>` *(gated by `g_protocol_5`)*                  | 1- or 2-digit flash value. >9 → err `0xee`, bad parse → err `0xed`                                                                                                                                                       |
+| `!LS`             | `!LS<n>` *(gated by `g_protocol_5`)*                    | `DAT_20031890` (light-sensor level), valid `2…5000`                                                                                                                                                                      |
+| `!Fm`             | — *(gated by `g_protocol_5`)*                           | `cmd_Fm_handler` — handler implemented but format not yet decoded                                                                                                                                                        |
 
 ## 5. Queries (return data)
 
-| Cmd | Format | Returns |
-|---|---|---|
-| `!??` | `!??` | full ID dump |
-| `!?a` | `!?a<UID>` | match 12-byte UID at `DAT_20031898`; on hit, append `:<HIGH>,<LOW>` to the reply |
-| `!?t` | `!?t` | RTC time: `:HHMMSS` (hex bytes via `bin_to_hex` of `g_rtc_*`) |
-| `!?d` | `!?d` | RTC date: `:WDDMMYY` (weekday is 1 hex digit; DD/MM/YY are 2 hex digits each) |
-| `!?b` | `!?b` | `:<DAT_200318b4>` (current brightness, 3 dec) |
-| `!?s` | `!?s` | `:` only (empty payload — handler reserved) |
-| `!?c` *(scope 1)* | `!?c` | sub-`!?d` family — geometry equivalent |
-| `!?i` *(scope 1)* | `!?i` | sub-`!?j` family |
-| `!?m` *(scope 1)* | `!?m` | mirror of `DAT_20072364` (cleared after read) |
-| `!?n` | `!?n` | `:<UID>` (12 bytes from `DAT_20031898`) |
-| `!?v` | `!?v` | app version: `:<HHHH>,<HHHH>` (4-digit hex each). Under `g_protocol_7` the digit widths drop to 3,2. |
-| `!?z` | `!?z` | geometry: `:<panel-px>,<panel-rows×lines>,<M\|C>` |
-| `!?j` | `!?j` | `:<PIO_byte>` (2 hex) from `read_PIO_and_unkown_mmap` |
-| `!?e` | `!?e` | failure log — `cmd_qe_rl_handler` |
-| `!?o` | `!?o` | mirror of `DAT_20072360` (cleared after read) |
-| `!?h` | `!?h` | hw-flags byte (also clears `DAT_200318c0` and `DAT_2007235c`); under `g_protocol_7`, bit `0x40` is OR'd in when bit `0x01` is set |
-| `!?F` | `!?F<+\|-\|...>` | `cmd_qF_handler` — also accepts `+` / `-` to set `DAT_20085664` directly |
-| `!rp` | `!rp` | `:<g_dwCfgTimeout>` (2 dec) |
-| `!rt` | `!rt` | dumps the 6 raw RTC bytes (`DAT_2008c180…` or, when `DAT_200318d4 == 1`, `DAT_20090a60…`) with `_` → `0xb0` substitution. No `:` prefix. |
-| `!rq` | `!rq` | `:<g_dwCfgSequenceMs/1000>` (2 dec) — current `!uq` value in seconds |
-| `!rf` | `!rf` | `:<aaa>,<bbb>` (or 4,4 under `g_protocol_7`) — current `!uf` scroll speeds (`g_dwCfgFlashSpeedA`/`B`) |
-| `!rm` | `!rm` | `:<g_dwCfgMaintTime>` (2 dec) |
-| `!rl` | `!rl` | `:<g_dwCfgPinLock>` (2 dec). **Under `g_protocol_7`** the mnemonic dispatches to a different opcode handled by `cmd_qe_rl_handler` instead. |
-| `!re` | `!re` | `:<DAT_200318f8>` (1 dec) |
-| `!rb` | `!rb` | `:<DAT_200722a0>` (3 dec — runtime brightness backstop, not the `Sb=` config) |
-| `!rs` | `!rs` | `:<DAT_20031904>` (2 dec) — current `!us` index |
+| Cmd               | Format           | Returns                                                                                                                                     |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `!??`             | `!??`            | full ID dump                                                                                                                                |
+| `!?a`             | `!?a<UID>`       | match 12-byte UID at `DAT_20031898`; on hit, append `:<HIGH>,<LOW>` to the reply                                                            |
+| `!?t`             | `!?t`            | RTC time: `:HHMMSS` (hex bytes via `bin_to_hex` of `g_rtc_*`)                                                                               |
+| `!?d`             | `!?d`            | RTC date: `:WDDMMYY` (weekday is 1 hex digit; DD/MM/YY are 2 hex digits each)                                                               |
+| `!?b`             | `!?b`            | `:<DAT_200318b4>` (current brightness, 3 dec)                                                                                               |
+| `!?s`             | `!?s`            | `:` only (empty payload — handler reserved)                                                                                                 |
+| `!?c` *(scope 1)* | `!?c`            | sub-`!?d` family — geometry equivalent                                                                                                      |
+| `!?i` *(scope 1)* | `!?i`            | sub-`!?j` family                                                                                                                            |
+| `!?m` *(scope 1)* | `!?m`            | mirror of `DAT_20072364` (cleared after read)                                                                                               |
+| `!?n`             | `!?n`            | `:<UID>` (12 bytes from `DAT_20031898`)                                                                                                     |
+| `!?v`             | `!?v`            | app version: `:<HHHH>,<HHHH>` (4-digit hex each). Under `g_protocol_7` the digit widths drop to 3,2.                                        |
+| `!?z`             | `!?z`            | geometry: `:<panel-px>,<panel-rows×lines>,<M\|C>`                                                                                           |
+| `!?j`             | `!?j`            | `:<PIO_byte>` (2 hex) from `read_PIO_and_unkown_mmap`                                                                                       |
+| `!?e`             | `!?e`            | failure log — `cmd_qe_rl_handler`                                                                                                           |
+| `!?o`             | `!?o`            | mirror of `DAT_20072360` (cleared after read)                                                                                               |
+| `!?h`             | `!?h`            | hw-flags byte (also clears `DAT_200318c0` and `DAT_2007235c`); under `g_protocol_7`, bit `0x40` is OR'd in when bit `0x01` is set           |
+| `!?F`             | `!?F<+\|-\|...>` | `cmd_qF_handler` — also accepts `+` / `-` to set `DAT_20085664` directly                                                                    |
+| `!rp`             | `!rp`            | `:<g_dwCfgTimeout>` (2 dec)                                                                                                                 |
+| `!rt`             | `!rt`            | dumps the 6 raw RTC bytes (`DAT_2008c180…` or, when `DAT_200318d4 == 1`, `DAT_20090a60…`) with `_` → `0xb0` substitution. No `:` prefix.    |
+| `!rq`             | `!rq`            | `:<g_dwCfgSequenceMs/1000>` (2 dec) — current `!uq` value in seconds                                                                        |
+| `!rf`             | `!rf`            | `:<aaa>,<bbb>` (or 4,4 under `g_protocol_7`) — current `!uf` scroll speeds (`g_dwCfgFlashSpeedA`/`B`)                                       |
+| `!rm`             | `!rm`            | `:<g_dwCfgMaintTime>` (2 dec)                                                                                                               |
+| `!rl`             | `!rl`            | `:<g_dwCfgPinLock>` (2 dec). **Under `g_protocol_7`** the mnemonic dispatches to a different opcode handled by `cmd_qe_rl_handler` instead. |
+| `!re`             | `!re`            | `:<DAT_200318f8>` (1 dec)                                                                                                                   |
+| `!rb`             | `!rb`            | `:<DAT_200722a0>` (3 dec — runtime brightness backstop, not the `Sb=` config)                                                               |
+| `!rs`             | `!rs`            | `:<DAT_20031904>` (2 dec) — current `!us` index                                                                                             |
 
 ## 6. Pages, lines, message content
 
@@ -138,18 +138,18 @@ Available only when the corresponding mode flag(s) are set (§3).
 
 ### 6.4 Display content — `!d*`, `!c*`, `!k*` *(gated by `g_protocol_1`/`g_protocol_2`)*
 
-| Cmd | Format | Effect |
-|---|---|---|
-| `!cd` | `!cd` | clear current message: tears down all secondary slots in the active page |
-| `!cl` | `!cl<line,1 dec>` | clear single line via `FUN_2002a444` |
-| `!dl` | `!dl<NN>[+]<MA><J>{ *<DDD> \| <…> }` | define a line. **Two implementations**: `cmd_dl_handler` (default) and `cmd_dl_handler_alt` (when `g_protocol_2` is set). See §6.5. |
-| `!dg` | `!dg<v1,3 dec><v2,3 dec>…<v7,3 dec>` | install a 7-value graphics record onto the active line via `FUN_20023868`. Active page required (else err `0xff000002`). |
-| `!df` | `!df<n,3 dec>` | append/sub: with no existing record `division(g_dwCfgChannels*g_dwCfgRowsPerLine, g_dwCfgColours)` is used; otherwise the next free slot (up to 16) gets `n`. Slot exhaustion → err `(slot<<24) \| 0x62 \| (n<<16)` |
-| `!dr` | `!dr<n,3 dec>` | adds `n` to the current `!df` slot's count |
-| `!dp` | `!dp<n>` | dwell/period: parses via `FUN_2000c780`, writes the per-line dwell at `DAT_2053f4cc/d0`. Under `g_protocol_7` (mirror mode) the value is also written to the mirrored slot. |
-| `!dw` | `!dw` | clears the per-page "dirty/window" flag `DAT_2053f4f0` |
-| `!kt` | `!kt<slot><<text>>` | compile markup into custom text slot. `<slot>` is 3-digit decimal (2-digit + 100 offset under `g_protocol_7`); max `0x327` (999). Body is `<…>` consumed by `FUN_2000c8c0`, copied into the slot at `&DAT_2055b000 + slot*0x1000` (or `0x205bf000 + slot*0x1000` under `g_protocol_7`). |
-| `!kg` | `!kg<n,3 dec>,<h,3 dec>,<w,3 dec><<pixels>>` | compile pixel matrix into custom graphics slot `n` (≤24, max `h*w=0x4000`). Body in `<…>`: 4 bits/px packed by halves, terminated by `>`. Stored at `&DAT_20887000 + n*0x4000`; header `DAT_200722f8[n] = w \| (h<<16) \| 0x80000000`. |
+| Cmd   | Format                                       | Effect                                                                                                                                                                                                                                                                                  |
+| ----- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `!cd` | `!cd`                                        | clear current message: tears down all secondary slots in the active page                                                                                                                                                                                                                |
+| `!cl` | `!cl<line,1 dec>`                            | clear single line via `FUN_2002a444`                                                                                                                                                                                                                                                    |
+| `!dl` | `!dl<NN>[+]<MA><J>{ *<DDD> \| <…> }`         | define a line. **Two implementations**: `cmd_dl_handler` (default) and `cmd_dl_handler_alt` (when `g_protocol_2` is set). See §6.5.                                                                                                                                                     |
+| `!dg` | `!dg<v1,3 dec><v2,3 dec>…<v7,3 dec>`         | install a 7-value graphics record onto the active line via `FUN_20023868`. Active page required (else err `0xff000002`).                                                                                                                                                                |
+| `!df` | `!df<n,3 dec>`                               | append/sub: with no existing record `division(g_dwCfgChannels*g_dwCfgRowsPerLine, g_dwCfgColours)` is used; otherwise the next free slot (up to 16) gets `n`. Slot exhaustion → err `(slot<<24) \| 0x62 \| (n<<16)`                                                                     |
+| `!dr` | `!dr<n,3 dec>`                               | adds `n` to the current `!df` slot's count                                                                                                                                                                                                                                              |
+| `!dp` | `!dp<n>`                                     | dwell/period: parses via `FUN_2000c780`, writes the per-line dwell at `DAT_2053f4cc/d0`. Under `g_protocol_7` (mirror mode) the value is also written to the mirrored slot.                                                                                                             |
+| `!dw` | `!dw`                                        | clears the per-page "dirty/window" flag `DAT_2053f4f0`                                                                                                                                                                                                                                  |
+| `!kt` | `!kt<slot><<text>>`                          | compile markup into custom text slot. `<slot>` is 3-digit decimal (2-digit + 100 offset under `g_protocol_7`); max `0x327` (999). Body is `<…>` consumed by `FUN_2000c8c0`, copied into the slot at `&DAT_2055b000 + slot*0x1000` (or `0x205bf000 + slot*0x1000` under `g_protocol_7`). |
+| `!kg` | `!kg<n,3 dec>,<h,3 dec>,<w,3 dec><<pixels>>` | compile pixel matrix into custom graphics slot `n` (≤24, max `h*w=0x4000`). Body in `<…>`: 4 bits/px packed by halves, terminated by `>`. Stored at `&DAT_20887000 + n*0x4000`; header `DAT_200722f8[n] = w \| (h<<16) \| 0x80000000`.                                                  |
 
 ### 6.5 `!dl` argument format
 
@@ -157,13 +157,13 @@ Available only when the corresponding mode flag(s) are set (§3).
 !dl<NN>[+]<MA><J>{ *<DDD> | <…text…> }
 ```
 
-| Part | Meaning |
-|---|---|
-| `<NN>` | line number. If first char is `'0'`, exactly one digit follows (lines 1–9 as `01`…`09`). Otherwise the decimal is consumed by `FUN_2000c780`. Line `0` → bad-param. |
-| `[+]` | optional. **Present** → continuation segment (clears the default-attr flag). **Absent** → this is the line's default attribute segment. |
-| `<MA>` | mode + colour, 2 chars, decoded by `parse_mode` (see §6.5.1 below). Returns a packed 16-bit `(colour<<8) \| mode`. Only ~50 input pairs are recognised; everything else falls through to mode `I`. |
-| `<J>` | justify, 1 char: `N` / `L` / `R` / `C`. Anything else → bad-param `0x02`. |
-| `*<DDD>` | recall stored text buffer: 3 decimal digits (0–999). Under the alt handler with `*DAT_20014078 != 0` the form is 2 digits + 100 internally → range 100–199. |
+| Part       | Meaning                                                                                                                                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<NN>`     | line number. If first char is `'0'`, exactly one digit follows (lines 1–9 as `01`…`09`). Otherwise the decimal is consumed by `FUN_2000c780`. Line `0` → bad-param.                                                    |
+| `[+]`      | optional. **Present** → continuation segment (clears the default-attr flag). **Absent** → this is the line's default attribute segment.                                                                                |
+| `<MA>`     | mode + colour, 2 chars, decoded by `parse_mode` (see §6.5.1 below). Returns a packed 16-bit `(colour<<8) \| mode`. Only ~50 input pairs are recognised; everything else falls through to mode `I`.                     |
+| `<J>`      | justify, 1 char: `N` / `L` / `R` / `C`. Anything else → bad-param `0x02`.                                                                                                                                              |
+| `*<DDD>`   | recall stored text buffer: 3 decimal digits (0–999). Under the alt handler with `*DAT_20014078 != 0` the form is 2 digits + 100 internally → range 100–199.                                                            |
 | `<…text…>` | inline body terminated by `>` or NUL. Allocated to a fresh slot via `FUN_20024128` (or `FUN_2002842c` for the bidi pre-processor path under the alt handler). Compiled by `FUN_2000c8c0` (with flag `1` for mode `q`). |
 
 #### 6.5.1 `<MA>` — `parse_mode` (`0x2000c25c`)
@@ -253,27 +253,27 @@ When `g_protocol_7` is set, four additional mnemonics become available *and* two
 
 When `g_protocol_3` is set, the parser inspects each new token's first byte before the `!` check and may take one of these paths:
 
-| First byte | Format | Effect |
-|---|---|---|
-| `R` | `Rx Time Now <±><HH>` / `Rx TIME NOW …` | adjust RTC time field by signed hex offset |
-| `R` | `Rx Date Now <MMDDYY>` / `Rx DATE NOW …` | set RTC date (validated; weekday auto-computed) |
-| `R` | `Rx Temperature Now <±><HH>` / `Rx Temp Now <±><HH>` (case variants) | set temperature offset |
-| `W` | `W//` | RTC/zone sync helper (clears DDX entries, then `FUN_2002e038`) |
-| `W` | `W//snu…` | per-zone select-and-update (`FUN_200254d4('M')` + `FUN_200274ac('M',…)` + optional `FUN_20029828`) |
-| `W` | `W…S<dst>i` / `W…<dst>C…` / `W…<dst>P<text>` | per-zone targeted ops (delete-set / clear / push text) using `FUN_200254d4('S')` |
-| `Z` | `ZB?` / `ZB<n≤100>` | get / set `DAT_200722a0` brightness backstop (runtime, not `Sb=`); reply `ZB<UID>:<val>,<sensor>` |
-| `Z` | `ZC` | reply with `ZC<UID>:<reg_0x2007235c>,<FPGA_0x6000030>,<DAT_2007228c>` (clears both); for diagnostic capture |
-| `Z` | `ZD` | re-arm: `mem_init`, set `g_protocol_1`, `g_dwCfgCurrentMode = 1` |
-| `Z` | `ZL` | `led_test` (same as `!tl`) |
-| `Z` | `ZO?` / `ZO<n>` | get / set `g_dwCfgTimeout` (`Timeout=`); setter also runs `FUN_2000441c` |
-| `Z` | `ZP` | reply `ZP<UID>:<FPGA_0x6000030>` |
-| `Z` | `ZQ<a><b>` | sets pair `g_dwCfgCarryLastLines = (a=='\x01')`, `g_dwCfgQueueMsThenSs = (b=='\x01')` |
-| `Z` | `ZR` | `system_reset` |
-| `Z` | `ZS` | reply `ZS<UID>: PCB236 UID is <UID>` |
-| `Z` | `ZT<0–7>` | `DAT_200722b4 = digit` (0 stores as 0) |
-| `Z` | `ZV` | reply `ZV<UID>:<hi-hex>-<lo-hex>` of `get_app_version` |
-| `Z` | `ZZ:<UID12>` | UID-gated reset-with-flag path: reply with current baud (`9600 N81` / `19200 N81`), `gpbr_set_word(0,5)`, port, baud-strap, `system_reset`. Equivalent to `!zz` but UID-keyed instead of address-keyed. |
-| `d` | `d…` | `cmd_d_raw_handler` — accepted whenever `g_protocol_3` is set, even outside an `!` token |
+| First byte | Format                                                               | Effect                                                                                                                                                                                                  |
+| ---------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `R`        | `Rx Time Now <±><HH>` / `Rx TIME NOW …`                              | adjust RTC time field by signed hex offset                                                                                                                                                              |
+| `R`        | `Rx Date Now <MMDDYY>` / `Rx DATE NOW …`                             | set RTC date (validated; weekday auto-computed)                                                                                                                                                         |
+| `R`        | `Rx Temperature Now <±><HH>` / `Rx Temp Now <±><HH>` (case variants) | set temperature offset                                                                                                                                                                                  |
+| `W`        | `W//`                                                                | RTC/zone sync helper (clears DDX entries, then `FUN_2002e038`)                                                                                                                                          |
+| `W`        | `W//snu…`                                                            | per-zone select-and-update (`FUN_200254d4('M')` + `FUN_200274ac('M',…)` + optional `FUN_20029828`)                                                                                                      |
+| `W`        | `W…S<dst>i` / `W…<dst>C…` / `W…<dst>P<text>`                         | per-zone targeted ops (delete-set / clear / push text) using `FUN_200254d4('S')`                                                                                                                        |
+| `Z`        | `ZB?` / `ZB<n≤100>`                                                  | get / set `DAT_200722a0` brightness backstop (runtime, not `Sb=`); reply `ZB<UID>:<val>,<sensor>`                                                                                                       |
+| `Z`        | `ZC`                                                                 | reply with `ZC<UID>:<reg_0x2007235c>,<FPGA_0x6000030>,<DAT_2007228c>` (clears both); for diagnostic capture                                                                                             |
+| `Z`        | `ZD`                                                                 | re-arm: `mem_init`, set `g_protocol_1`, `g_dwCfgCurrentMode = 1`                                                                                                                                        |
+| `Z`        | `ZL`                                                                 | `led_test` (same as `!tl`)                                                                                                                                                                              |
+| `Z`        | `ZO?` / `ZO<n>`                                                      | get / set `g_dwCfgTimeout` (`Timeout=`); setter also runs `FUN_2000441c`                                                                                                                                |
+| `Z`        | `ZP`                                                                 | reply `ZP<UID>:<FPGA_0x6000030>`                                                                                                                                                                        |
+| `Z`        | `ZQ<a><b>`                                                           | sets pair `g_dwCfgCarryLastLines = (a=='\x01')`, `g_dwCfgQueueMsThenSs = (b=='\x01')`                                                                                                                   |
+| `Z`        | `ZR`                                                                 | `system_reset`                                                                                                                                                                                          |
+| `Z`        | `ZS`                                                                 | reply `ZS<UID>: PCB236 UID is <UID>`                                                                                                                                                                    |
+| `Z`        | `ZT<0–7>`                                                            | `DAT_200722b4 = digit` (0 stores as 0)                                                                                                                                                                  |
+| `Z`        | `ZV`                                                                 | reply `ZV<UID>:<hi-hex>-<lo-hex>` of `get_app_version`                                                                                                                                                  |
+| `Z`        | `ZZ:<UID12>`                                                         | UID-gated reset-with-flag path: reply with current baud (`9600 N81` / `19200 N81`), `gpbr_set_word(0,5)`, port, baud-strap, `system_reset`. Equivalent to `!zz` but UID-keyed instead of address-keyed. |
+| `d`        | `d…`                                                                 | `cmd_d_raw_handler` — accepted whenever `g_protocol_3` is set, even outside an `!` token                                                                                                                |
 
 The reply for the `Z` family uses the literal `Z<letter>` prefix followed by the hex unit address (`DAT_200815dd`) rather than the standard `[U Y …]` envelope. Checksums are still appended.
 
@@ -402,13 +402,13 @@ Reset between probes with `[0A!cd]` (clear current message) — avoids leftover 
 
 Goal: confirm which mode actually renders as static text, scroll, static clock, scrolling clock — and confirm the `(primary, secondary)` slot pairing maps to visible behaviour.
 
-| # | Command | What to observe | Confirms |
-|---|---|---|---|
-| 1 | `[0A!dl01S1N<HELLO>]` | text "HELLO" should appear stationary in the line's default position, colour 1 | `MODE_STATIC` writes `(S,S)` and the renderer treats the pair as plain static |
-| 2 | `[0A!dl01s1N<HELLO>]` | text should scroll horizontally; same colour | `MODE_SCROLL` writes `(S,s)` and `s` in the secondary slot is the scroll trigger |
-| 3 | `[0A!dl01C1N<>]` | live clock face should appear, static (no scroll); empty `<>` because clock fields come from RTC | `MODE_CLOCK_STATIC` writes `(C,S)` |
-| 4 | `[0A!dl01c1N<>]` | live clock that scrolls in/out (likely 12-h format if `C` was 24-h) | `MODE_CLOCK_SCROLL` writes `(c,s)` — also tests whether case difference encodes 12h vs 24h |
-| 5 | `[0A!dl01C0N<>]` then `[0A!dl01CAN<>]` | both should render identically | `CA` is the documented alias for `C0` |
+| #   | Command                                | What to observe                                                                                  | Confirms                                                                                   |
+| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| 1   | `[0A!dl01S1N<HELLO>]`                  | text "HELLO" should appear stationary in the line's default position, colour 1                   | `MODE_STATIC` writes `(S,S)` and the renderer treats the pair as plain static              |
+| 2   | `[0A!dl01s1N<HELLO>]`                  | text should scroll horizontally; same colour                                                     | `MODE_SCROLL` writes `(S,s)` and `s` in the secondary slot is the scroll trigger           |
+| 3   | `[0A!dl01C1N<>]`                       | live clock face should appear, static (no scroll); empty `<>` because clock fields come from RTC | `MODE_CLOCK_STATIC` writes `(C,S)`                                                         |
+| 4   | `[0A!dl01c1N<>]`                       | live clock that scrolls in/out (likely 12-h format if `C` was 24-h)                              | `MODE_CLOCK_SCROLL` writes `(c,s)` — also tests whether case difference encodes 12h vs 24h |
+| 5   | `[0A!dl01C0N<>]` then `[0A!dl01CAN<>]` | both should render identically                                                                   | `CA` is the documented alias for `C0`                                                      |
 
 For #3/#4 also issue `[0A!st<HHMMSS>]` first so the clock has a known time.
 
