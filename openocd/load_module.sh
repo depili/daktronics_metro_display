@@ -44,7 +44,7 @@
 #
 set -euo pipefail
 
-BIN="${1:-$(dirname "$0")/vendor/Rev 2_5/App/RM2040-044.bin}"
+BIN="${1:-$(dirname "$0")/RM2040-044.bin}"
 RUN_MS="${RUN_MS:-60000}"
 CFG="${CFG:-$(dirname "$0")/at91sam9260_jtaghat.cfg}"
 
@@ -104,16 +104,18 @@ halt
 # level shifters on a Pi 3B+.
 adapter speed 500
 
+
 # --- segment table from RM2040-044.bin header ----------------------------
 # load_image syntax: load_image <file> <addr> bin <file_offset> <length>
 echo "loading seg 0 (head)    -> 0x20000000  0x000200"
-load_image {${BIN_ABS}} 0x20000000 bin 0x000000 0x000200
+load_image head.bin 0x20000000 bin
 echo "loading seg 1 (vectors) -> 0x00000000  0x0003A0"
-load_image {${BIN_ABS}} 0x00000000 bin 0x000200 0x0003A0
+# load_image vectors.bin 0x00000000 bin
+load_image vectors.bin 0x00200000 bin
 echo "loading seg 2 (text)    -> 0x20000200  0x022820"
-load_image {${BIN_ABS}} 0x20000200 bin 0x0005A0 0x022820
+load_image text.bin 0x20000200 bin
 echo "loading seg 3 (data)    -> 0x20023000  0x000974"
-load_image {${BIN_ABS}} 0x20023000 bin 0x022DC0 0x000974
+load_image data.bin 0x20023000
 EOF
 )
 
@@ -147,12 +149,12 @@ arm mcr 15 0 7 10 4 0
 # vector at the start of the just-loaded vector table) and run.
 reg pc 0x00000000
 echo "resuming at 0x00000000 (reset vector of loaded module)..."
-resume
+resume 0x20000228
 
 # Stay attached briefly so any "halt on fault" semantics on the adapter
 # don't kill the run, then drop the OpenOCD session. The target keeps
 # executing after shutdown.
-sleep 200
+sleep 600
 shutdown
 EOF
 )"

@@ -24,7 +24,7 @@ OUT_DIR="${1:-flash_dump}"
 START="${START:-0x10030000}"
 CHUNK="${CHUNK:-262144}"
 COUNT="${COUNT:-20}"
-RUN_MS="${RUN_MS:-60000}"
+RUN_MS="${RUN_MS:-30000}"
 CFG="${CFG:-$(dirname "$0")/at91sam9260_jtaghat.cfg}"
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -58,7 +58,7 @@ halt
 # PLL is up after the firmware boots, so raise TCK for the dump.
 # Capped at 3 MHz to stay well inside what the JTAG Hat level shifters
 # and the bcm2835gpio bitbang driver handle reliably on a Pi 3B+.
-adapter speed 500
+adapter speed 250
 
 set start  ${START}
 set chunk  ${CHUNK}
@@ -66,14 +66,22 @@ set count  ${COUNT}
 set outdir "${OUT_DIR_ABS}"
 # dump_image mem 0x20000000 0x100000
 
-# App on the display, segments
 
-dump_image mem_vectors 0x00000000 0x3A0
-dump_image mem_head    0x20000000 0x200
-dump_image mem_text    0x20000200 0x3072C
-dump_image mem_data    0x20031000 0x928
-dump_image mem_bss1    0x20032000 0x528054
-dump_image mem_bss2    0x2055b000 0x4C6100
+# Secondary loader put the app image here
+dump_image RM2037.bin      0x21c00000 0x315E4
+
+# Fonts
+dump_image font1.bin       0x208eb000 0xFBE8
+dump_image font2.bin       0x2092b000 0xFBE8
+dump_image font3.bin       0x2096b000 0xFBE8
+
+# App on the display, segments
+# dump_image mem_vectors 0x00000000 0x3A0
+# dump_image mem_head    0x20000000 0x200
+# dump_image mem_text    0x20000200 0x3072C
+# dump_image mem_data    0x20031000 0x928
+# dump_image mem_bss1    0x20032000 0x528054
+# dump_image mem_bss2    0x2055b000 0x4C6100
 
 #dump_image flash_1000 0x10000000 0x10000
 #dump_image flash_1001 0x10010000 0x20000
